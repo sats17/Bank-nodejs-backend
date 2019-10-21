@@ -20,11 +20,13 @@ export default class BankWalletController {
     // }
 
     deposit = (req,res) => {
+        console.log(req)
+        let IFSCCode = req.body.userIFSC;
+        let amount = req.body.amount;
 
-        let IFSCCode = req.userIFSC;
-        let amount = req.amount;
-
-        this.bankWallet.findOneAndUpdate({userIFSC:IFSCCode},{balance:balance + amount},{
+        console.log(IFSCCode," ",amount)
+       // res.send(IFSCCode)
+        this.model.findOneAndUpdate({userIFSC:IFSCCode},{balance: amount},{
             new:true,
             upsert:true
         })

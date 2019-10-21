@@ -1,16 +1,21 @@
 import mongoose from "mongoose";
 import bankWallet from "./wallet";
+import uniqueValidator from "mongoose-unique-validator";
+
 
 const userSchema = new mongoose.Schema({
     firstName : {type : String,required : true},
     lastName : {type : String,required : true},
-    userIFSC : {type : String},
+    userIFSC : {type : String,unique : true},
     accountPassword : {type : String,required : true},
-    mobileNumber : {type : String,required : true}
+    mobileNumber : {type : String,unique : true,required : true}
 })
+
+userSchema.plugin(uniqueValidator);
 
 userSchema.pre("save", async function(){
     await userIFSCGenerator(this);
+    await createWallet(this);
 })
 
 function userIFSCGenerator(schema){
@@ -31,21 +36,18 @@ function userIFSCGenerator(schema){
 
 }
 
-// function createWallet(schema){
-//     console.log(schema)
-//     let wallet = {
-//         userIFSC : schema.userIFSC
-//     }
-//     console.log(wallet)
-//     let userWallet = new bankWallet(wallet);
-//     console.log(userWallet)
-//     userWallet
-//               .save()
-//               .then(doc => {
-//                   console.log("wallet inserted")
-//               });
+function createWallet(schema){
+    let wallet = {
+        "userIFSC" : schema.userIFSC
+    }
+    let userWallet = new bankWallet(wallet);
+    userWallet
+              .save()
+              .then(doc => {
 
-// }
+            });
+
+}
 
 
 
