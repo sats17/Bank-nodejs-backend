@@ -1,4 +1,5 @@
 import bankUser from "../Models/user";
+import bankWallet from "../Models/wallet"
 
 
 export default class BankUserController{
@@ -12,7 +13,15 @@ export default class BankUserController{
         body
             .save()
             .then(doc => {
-                console.log("inserted")
+                let wallet = {
+                    "userIFSC" : doc.userIFSC
+                }
+                let userWallet = new bankWallet(wallet);
+                userWallet
+                          .save()
+                          .then(doc => {
+                                console.log("wallet inserted")
+                  });
                 res.send("inserted")
             })
             .catch(err => {
