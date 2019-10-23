@@ -1,31 +1,25 @@
 import bankUser from "../Models/user";
 import bankWallet from "../Models/wallet";
 import HttpCodes from "../utils/httpCodes";
+import errorHandler from "../utils/errorHandler"
+import isEmpty from "lodash.isempty";
+
 
 
 export default class BankUserController{
     
-        model = bankUser
+    model = bankUser
     
 
-       insert = (req,res) => {
+    insert = (req,res) => {
 
-        function errorHandler(err,errType){
-
-            if(err){
-                return res.status(errType.CODE).json({
-                    message : errType.MESSAGE,
-                    dev : err 
-                })
-            }
         
-        }
-
-        if(!req.body){
-            errorHandler(new Error("Please fill all fields"),HttpCodes.BAD_REQUEST)
+        if(isEmpty(req.body)){
+            let errorObj = errorHandler("Please fill request body.",HttpCodes.BAD_REQUEST)
+            res.status(HttpCodes.BAD_REQUEST.CODE).json(errorObj)
         }
         else{
-
+            
             let body = new bankUser(req.body);
 
             body
@@ -36,7 +30,8 @@ export default class BankUserController{
                     )
                 })
                 .catch(err => {
-                    errorHandler(err,HttpCodes.SERVER_ERROR);
+                    let errorObject = errorHandler(err,HttpCodes.SERVER_ERROR);
+                    res.status(HttpCodes.SERVER_ERROR.CODE).json(errorObject)
                 })
             }
         

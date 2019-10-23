@@ -14,4 +14,9 @@ export default class HttpCodes {
         CODE: 400,
         MESSAGE: "Bad request."
     };
+
+    static UNPROCESSABLE_ENTITY = {
+        CODE: 422,
+        MESSAGE: "Deposit failed , please enter valid amount."
+    };
 }

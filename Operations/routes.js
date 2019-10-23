@@ -19,5 +19,8 @@ router
       .route("/wallet/deposit")
       .post(bankWalletCtrl.deposit);     
 
+router
+      .route("/wallet/withdraw")
+      .post(bankWalletCtrl.withdraw);
 
 export default router;
