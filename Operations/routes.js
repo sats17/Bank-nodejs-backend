@@ -23,4 +23,12 @@ router
       .route("/wallet/withdraw")
       .post(bankWalletCtrl.withdraw);
 
+router
+      .route("/wallet/showbalance/:id")
+      .get(bankWalletCtrl.showBalance)    
+
+router
+      .route("/bank/signin")
+      .post(bankUserCtrl.login);  
+
 export default router;

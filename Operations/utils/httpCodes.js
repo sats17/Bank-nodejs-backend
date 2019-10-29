@@ -19,4 +19,14 @@ export default class HttpCodes {
         CODE: 422,
         MESSAGE: "Deposit failed , please enter valid amount."
     };
+
+    static UNAUTHORIZED = {
+        CODE: 401,
+        MESSAGE: "Wrong USERIFSC/Password. Please try again."
+    };
+
+    static FORBIDDEN = {
+        CODE: 403,
+        MESSAGE: "Access forbidden."
+    };
 }
