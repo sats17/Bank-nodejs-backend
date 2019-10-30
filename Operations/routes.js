@@ -1,6 +1,7 @@
 import express from "express";
 import BankUserController from "./Controllers/user";
-import BankWalletController from "./Controllers/wallet"
+import BankWalletController from "./Controllers/wallet";
+import checkToken from "./utils/checkToken";
 
 const router = express.Router();
 
@@ -17,18 +18,23 @@ router
 
 router
       .route("/wallet/deposit")
-      .post(bankWalletCtrl.deposit);     
+      .post(checkToken,bankWalletCtrl.deposit);     
 
 router
       .route("/wallet/withdraw")
-      .post(bankWalletCtrl.withdraw);
+      .post(checkToken,bankWalletCtrl.withdraw);
 
 router
-      .route("/wallet/showbalance/:id")
-      .get(bankWalletCtrl.showBalance)    
+      .route("/wallet/showbalance")
+      .get(checkToken,bankWalletCtrl.showBalance)    
+
+router
+      .route("/wallet/fundtransfer")
+      .put(checkToken,bankWalletCtrl.fundTransfer)    
 
 router
       .route("/bank/signin")
       .post(bankUserCtrl.login);  
+
 
 export default router;
