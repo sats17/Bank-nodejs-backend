@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import transactionTypes from "../utils/transactionTypes"
 
 const transactionsSchema = mongoose.Schema({
-    userIFSC : {type:String},
+    accountNumber : {type:String},
     date : Date,
     transactionType : {
         type:String,

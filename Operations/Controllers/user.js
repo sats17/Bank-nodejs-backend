@@ -5,6 +5,7 @@ import errorHandler from "../utils/errorHandler"
 import isEmpty from "lodash.isempty";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 
 
 dotenv.config(); //configure env files 
@@ -22,8 +23,6 @@ export default class BankUserController{
             res.status(HttpCodes.BAD_REQUEST.CODE).json(errorObj)
         }
         else{
-            console.log(process.env.PORT)
-            console.log(req.body)
             let body = new bankUser(req.body);
 
             body
@@ -42,31 +41,43 @@ export default class BankUserController{
     }
 
     login = (req,res) => {
-        let userIFSC = req.body.userIFSC
+        let accNum = req.body.accountNumber
         let password = req.body.password
 
         this.model
-            .find({$and:[{userIFSC:userIFSC,accountPassword:password}]})
+            .find({accountNumber:accNum},{accountPassword:1})
             .then(doc => {
                 if(isEmpty(doc)){
                     res.status(HttpCodes.UNAUTHORIZED.CODE).json(
                         {
-                            "message" : "Either UserIFSC or Password Wrong!"
+                            "message" : "Account number is Wrong!"
                         }
                     )
                 }
                 else{
-                    let payload = {
-                        "user" : userIFSC,
+                    let hashedPassword = doc[0].accountPassword;
+                    if(bcrypt.compareSync(password,hashedPassword)){
+
+                        let payload = {
+                            "user" : accNum,
                         
-                    }
-                    let token = jwt.sign(payload,process.env.SECRET_TOKEN,{expiresIn : 60 * 60})
-                    res.status(HttpCodes.OK.CODE).json(
-                        {
-                            "token" : token,
-                            "user" : doc
                         }
-                    )
+                        let token = jwt.sign(payload,process.env.SECRET_TOKEN,{expiresIn : 60 * 60})
+                        res.status(HttpCodes.OK.CODE).json(
+                            {
+                                "token" : token,
+                                "user" : doc
+                            }
+                        )
+                    }
+                    else{
+                        res.status(HttpCodes.UNAUTHORIZED.CODE).json(
+                            {
+                                "message" : "Password is Wrong!"
+                            }
+                        )
+
+                    }   
                 }
             })
             .catch(err => {

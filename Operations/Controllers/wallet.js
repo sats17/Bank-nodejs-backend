@@ -30,10 +30,10 @@ export default class BankWalletController {
     //           )
     // }
 
-    transactionCreator = (userIFSC,transactionType,amount) => {
+    transactionCreator = (accountNumber,transactionType,amount) => {
 
       let transactionObj = {
-        "userIFSC" : userIFSC,
+        "accountNumber" : accountNumber,
         "amount" : amount,
         "date" : new Date(),
         "transactionType" : transactionType
@@ -61,23 +61,20 @@ export default class BankWalletController {
         }
         else{
 
-            let IFSCCode = authorizedData.user;
+            let accNum = authorizedData.user;
             let amount = req.body.amount;
 
-            this.model.find({userIFSC:IFSCCode},{balance:1})
+            this.model.find({accountNumber:accNum},{balance:1})
                       .then(doc =>{
                           if(amount <= 0 || amount >=20000){
                             let jsonObj = errorHandler("Deposit must be greater than 0 and less than 20000",HttpCodes.UNPROCESSABLE_ENTITY)
                             res.status(HttpCodes.UNPROCESSABLE_ENTITY.CODE).json(jsonObj)
                           }
                           else{
-                            this.model.findOneAndUpdate({userIFSC:IFSCCode},{$inc:{balance: amount}},{
-                                new:true,
-                                upsert:true,
-                                runValidators:true
-                                })
+                            this.model
+                                .findOneAndUpdate({accountNumber:accNum},{$inc:{balance: amount}})
                                 .then(doc => {
-                                  this.transactionCreator(IFSCCode,"DEPOSIT",amount);
+                                  this.transactionCreator(accNum,"DEPOSIT",amount);
                                   res.status(HttpCodes.OK.CODE).json(
                                     doc
                                 )                 
@@ -114,11 +111,11 @@ export default class BankWalletController {
               res.status(HttpCodes.BAD_REQUEST.CODE).json(jsonObj)
             }
             else{
-              let IFSCCode = authorizedData.user;
+              let accNum = authorizedData.user;
               let amount = req.body.amount;
   
               this.model
-                  .find({userIFSC:IFSCCode},{balance:1})
+                  .find({accountNumber:accNum},{balance:1})
                   .then(doc =>{
                       if(amount <= 0 || amount >=2000){
                         let jsonObj = errorHandler("Withdraw must be greater than 0 and less than 2000",HttpCodes.UNPROCESSABLE_ENTITY)
@@ -130,13 +127,9 @@ export default class BankWalletController {
                       } 
                       else{
                         this.model
-                            .findOneAndUpdate({userIFSC:IFSCCode},{$inc:{balance: -amount}},{
-                                  new:true,
-                                  upsert:true,
-                                  runValidators:true
-                            })
+                            .findOneAndUpdate({accountNumber:accNum},{$inc:{balance: -amount}})
                             .then(doc => {
-                                  this.transactionCreator(IFSCCode,"WITHDRAW",amount)
+                                  this.transactionCreator(accNum,"WITHDRAW",amount)
                                   res.status(HttpCodes.OK.CODE).json(
                                     doc
                                   )
@@ -164,9 +157,9 @@ export default class BankWalletController {
               res.status(HttpCodes.FORBIDDEN.CODE).json(jsonObj)
           }
           else{
-            let userIFSC = authorizedData.user;
+            let accNum = authorizedData.user;
             this.model
-                .find({userIFSC:userIFSC},{balance:1})
+                .find({accountNumber:accNum},{balance:1})
                 .then(doc => {
                     if(isEmpty(doc)){
                     res.status(HttpCodes.UNAUTHORIZED.CODE).json(
@@ -203,12 +196,12 @@ export default class BankWalletController {
               res.status(HttpCodes.BAD_REQUEST.CODE).json(jsonObj)
             }
             else{
-                let userIFSC = authorizedData.user;
-                let anotherUserIFSC = req.body.userIFSC;
+                let accNum = authorizedData.user;
+                let anotherUserAccNum = req.body.accountNumber;
                 let amount = req.body.amount;
                 
                 this.model
-                    .findOne({userIFSC:userIFSC},{balance:1})
+                    .findOne({accountNumber:accNum},{balance:1})
                     .then(doc => {
                       console.log(doc.balance)
                       if(amount <= 0 || amount >=2000){
@@ -221,7 +214,7 @@ export default class BankWalletController {
                       }
                       else{
                         this.model
-                            .findOneAndUpdate({userIFSC:anotherUserIFSC},{$inc:{balance:amount}})
+                            .findOneAndUpdate({accountNumber:accNum},{$inc:{balance:amount}})
                             .then(doc => {
                               if(isEmpty(doc)){
                                 res.status(HttpCodes.UNAUTHORIZED.CODE).json(
@@ -234,7 +227,7 @@ export default class BankWalletController {
                                 
                               let updatedBalance = doc
                               this.model
-                                  .findOneAndUpdate({userIFSC:userIFSC},{$inc:{balance:-amount}})
+                                  .findOneAndUpdate({accountNumber:anotherUserAccNum},{$inc:{balance:-amount}})
                                   .then(doc => {
                                 //    this.transactionCreator(IFSCCode,"FUNDTRANSFER",amount)
                                     res.status(HttpCodes.OK.CODE).json(
