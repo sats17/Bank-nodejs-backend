@@ -12,7 +12,8 @@ const transactionsSchema = mongoose.Schema({
             transactionTypes.FUNDTRANSFER
         ]
      },
-    amount : {type:Number}
+    amount : {type:Number},
+    toAccountNumber : {type:String}
 })
 
 const userTransactions = mongoose.model("userTransactions",transactionsSchema,"userTransactions");

@@ -30,13 +30,14 @@ export default class BankWalletController {
     //           )
     // }
 
-    transactionCreator = (accountNumber,transactionType,amount) => {
+    transactionCreator = (accountNumber,transactionType,amount,toAccountNumber) => {
 
       let transactionObj = {
         "accountNumber" : accountNumber,
         "amount" : amount,
         "date" : new Date(),
-        "transactionType" : transactionType
+        "transactionType" : transactionType,
+        "toAccountNumber" : toAccountNumber
       }
 
       let transactionModel = new userTransactions(transactionObj);
@@ -72,9 +73,9 @@ export default class BankWalletController {
                           }
                           else{
                             this.model
-                                .findOneAndUpdate({accountNumber:accNum},{$inc:{balance: amount}})
+                                .findOneAndUpdate({accountNumber:accNum},{$inc:{balance: amount}},{new :true})
                                 .then(doc => {
-                                  this.transactionCreator(accNum,"DEPOSIT",amount);
+                                  this.transactionCreator(accNum,transactionTypes.DEPOSIT,amount);
                                   res.status(HttpCodes.OK.CODE).json(
                                     doc
                                 )                 
@@ -90,11 +91,11 @@ export default class BankWalletController {
                         res.status(HttpCodes.SERVER_ERROR.CODE).json(jsonObj)
                         })
                                       
+          }
         }
-      }
-    })
+      })
 
-    }
+    } // End of deposit api. 
 
     withdraw = (req,res) => {
 
@@ -127,9 +128,9 @@ export default class BankWalletController {
                       } 
                       else{
                         this.model
-                            .findOneAndUpdate({accountNumber:accNum},{$inc:{balance: -amount}})
+                            .findOneAndUpdate({accountNumber:accNum},{$inc:{balance: -amount}},{new :true})
                             .then(doc => {
-                                  this.transactionCreator(accNum,"WITHDRAW",amount)
+                                  this.transactionCreator(accNum,transactionTypes.WITHDRAW,amount)
                                   res.status(HttpCodes.OK.CODE).json(
                                     doc
                                   )
@@ -147,7 +148,7 @@ export default class BankWalletController {
             }
           }
         })
-    }
+    } // End of withdraw api .
 
     showBalance = (req,res) => {
         let token = req.token; //Got token from middleware .
@@ -180,7 +181,7 @@ export default class BankWalletController {
                   })  
                 }
               }) //End of jwt callback function.
-    }
+    } // End of show balance api .
 
     fundTransfer = (req,res) => {
 
@@ -203,7 +204,6 @@ export default class BankWalletController {
                 this.model
                     .findOne({accountNumber:accNum},{balance:1})
                     .then(doc => {
-                      console.log(doc.balance)
                       if(amount <= 0 || amount >=2000){
                         let jsonObj = errorHandler("Amount must be greater than 0 and less than 2000",HttpCodes.UNPROCESSABLE_ENTITY)
                         res.status(HttpCodes.UNPROCESSABLE_ENTITY.CODE).json(jsonObj)
@@ -214,7 +214,7 @@ export default class BankWalletController {
                       }
                       else{
                         this.model
-                            .findOneAndUpdate({accountNumber:accNum},{$inc:{balance:amount}})
+                            .findOneAndUpdate({accountNumber:anotherUserAccNum},{$inc:{balance:amount}},{new :true})
                             .then(doc => {
                               if(isEmpty(doc)){
                                 res.status(HttpCodes.UNAUTHORIZED.CODE).json(
@@ -224,12 +224,14 @@ export default class BankWalletController {
                                )
                               }
                               else{
+                               
+                              this.transactionCreator(anotherUserAccNum,transactionTypes.FUNDTRANSFER,+amount,accNum)  
                                 
                               let updatedBalance = doc
                               this.model
-                                  .findOneAndUpdate({accountNumber:anotherUserAccNum},{$inc:{balance:-amount}})
+                                  .findOneAndUpdate({accountNumber:accNum},{$inc:{balance:-amount}},{new :true})
                                   .then(doc => {
-                                //    this.transactionCreator(IFSCCode,"FUNDTRANSFER",amount)
+                                    this.transactionCreator(accNum,transactionTypes.FUNDTRANSFER,-amount,anotherUserAccNum)
                                     res.status(HttpCodes.OK.CODE).json(
                                       updatedBalance
                                     )
@@ -251,6 +253,31 @@ export default class BankWalletController {
             }
           }
       })
-    }
+    } //End of fund transfer api.
+
+    miniStatement = (req,res) => {
+
+      let token = req.token; //Got token from middleware .
+      jwt.verify(token,process.env.SECRET_TOKEN,(err,authorizedData) =>{
+        if(err){
+            let jsonObj = errorHandler(err,HttpCodes.FORBIDDEN)
+            res.status(HttpCodes.FORBIDDEN.CODE).json(jsonObj)
+        }
+        else{
+          let accNum = authorizedData.user;
+          userTransactions.find({accountNumber:accNum})
+                          .then(doc => {
+                            res.status(HttpCodes.OK.CODE).json(
+                              doc
+                            )
+                          })
+                          .catch(err => {
+                            let jsonObj = errorHandler(err,HttpCodes.SERVER_ERROR)
+                            res.status(HttpCodes.SERVER_ERROR.CODE).json(jsonObj)
+                          })
+        }
+
+    })
+    } // End of mini statement api.
 }
 

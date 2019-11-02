@@ -33,6 +33,10 @@ router
       .put(checkToken,bankWalletCtrl.fundTransfer)    
 
 router
+      .route("/transactions/ministatement")
+      .get(checkToken,bankWalletCtrl.miniStatement)
+      
+router
       .route("/bank/signin")
       .post(bankUserCtrl.login);  
 

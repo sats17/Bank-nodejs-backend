@@ -1,3 +1,7 @@
+/*
+    @Author     - Sats17
+    @Written on - Node v10.17.0 (used babel compiler for getting ES6)
+*/
 import express  from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
